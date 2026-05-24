@@ -40,9 +40,6 @@ npm test
 ➡️ See [prompts.md](./prompts.md) for AI usage documentation.
 ➡️ See [plan.md](./plan.md) for the full build plan.
 
-## Test Results
-- **10 test suites**
-- **60 tests passing**
 
 ## Model Used
 Claude Sonnet 4.6

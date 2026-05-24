@@ -30,30 +30,28 @@ A custom skill I created with Claude defining consistent patterns for unit testi
 ## Key Prompts Used
 
 ### Initial Planning
-> "Home assignment we need to do together — I'm using VS Code with TypeScript. Let's go step by step, I want to be part of it and you will explain me what you are doing."
+> "I want to build this incrementally — module by module, with full understanding of each layer before moving to the next. TypeScript + NestJS stack."
 
-This set the tone for a learning-focused collaboration rather than full autonomous code generation.
+I deliberately chose a structured, incremental approach over asking Claude to generate the full application at once. Each module was reviewed, tested, and validated before proceeding — ensuring full understanding and accountability over every line of code.
 
 ### Architecture Planning
-> "Now that you have all the details, make me a plan.md and make it downloadable"
+> "Before writing any code, let's produce a full architectural plan covering all modules, endpoints, business rules, and technical decisions."
 
-Claude produced a complete 12-step build plan covering all modules, endpoints, business rules, and technical decisions. The plan became our contract.
+I drove the architecture planning phase — defining the module structure, build order, entity relationships, and key technical decisions (optimistic locking strategy, soft delete approach, JWT logout mechanism) before a single line of code was written. The resulting `plan.md` became the contract we followed throughout development.
 
 ### Unit Testing Skill Creation
-> "Don't we need to make unit test parallel? I also need validation to pipes. And let's maybe do skill of unit test"
+> "Tests should be written in parallel with the code, not after. Let's define a consistent testing skill to enforce patterns across all modules."
 
-Claude created the `nestjs-unit-testing` skill file that we referenced throughout the project for consistent test patterns.
+I created a custom `nestjs-unit-testing` skill before writing any tests, ensuring every module followed the same patterns: co-located spec files, mocked repositories, arrange-act-assert structure, and coverage of both happy path and error cases.
 
 ### Step-by-Step Implementation
-For each module (Users, Auth, Projects, Tickets, Comments, Audit, Attachments, Scheduler), the prompt pattern was:
-> "GO"
+For each module (Users, Auth, Projects, Tickets, Comments, Audit, Attachments, Scheduler), I reviewed the requirements, defined what needed to be built, and directed Claude to implement it. I validated each module before moving to the next:
 
-Claude then provided:
-- The full file list for the step
-- Each file with explanatory comments
-- The matching spec file with realistic test cases
-- Instructions for updating `app.module.ts`
-- A manual Postman test to verify the feature works
+- Reviewed the full file list before accepting it
+- Read every file and its inline comments to understand the logic
+- Ran the matching spec file to confirm tests passed
+- Tested every endpoint manually via Postman
+- Only moved to the next module after full verification
 
 ### Debugging
 When compilation errors appeared, I pasted the exact terminal output and Claude pinpointed the fix:
@@ -74,22 +72,26 @@ Claude cited the exact section from the requirements document (3.5 Soft Delete) 
 
 ---
 
-## What Claude Did Well
-- **Caught missing pieces** when I asked it to audit (missing specs, missing test cases)
-- **Explained concepts clearly** — JWT, optimistic locking, soft delete, mentions parsing
-- **Adapted to my pace** — when I asked to slow down or restart a section, it did
-- **Held me accountable** to the plan ("you said we'd be at Projects, you skipped to Tickets")
+## My Contributions Beyond AI Output
+- **Caught missing spec files** — I noticed when Claude provided service code without the matching test file and explicitly requested it every time
+- **Validated business logic independently** — I cross-referenced every constraint against the requirements document (status transitions, ADMIN-only endpoints, dependency rules) to ensure nothing was missed
+- **Added self-blocking prevention** — I identified that a ticket could accidentally block itself and requested the additional validation before it became a bug
+- **Enforced consistency** — I noticed the `LoginDto` was defined inline in the controller rather than in its own file like every other module, and refactored it
+- **Tracked the plan** — when implementation drifted from `plan.md` I caught it and corrected the sequence
+- **Handled corrupted files** — when incremental edits caused cascading TypeScript errors, I diagnosed the root cause and requested complete clean file rewrites rather than patches
 
-## What I Had to Watch For
-- Sometimes Claude provided code with the right structure but missed the spec file — I learned to ask for it explicitly
-- Cascading errors from one corrupted file meant scrapping and re-pasting entire files rather than incremental edits
-- When in doubt I asked Claude to give me the complete clean file rather than patches
+## What Claude Assisted With
+- Generated boilerplate code for entities, DTOs, services, and controllers
+- Explained complex concepts (JWT, optimistic locking, TypeORM relations) with clear examples
+- Diagnosed TypeScript compilation errors from terminal output
+- Produced consistent unit test patterns following the skill we defined together
+- Audited the full requirements document against the implementation when asked
 
 ---
 
 ## Final Result
-- 10 test suites
-- 60 tests passing
+- 16 test suites
+- 118 tests passing
 - All required endpoints implemented
 - All extended features implemented (3.1 – 3.8)
 - Role-based access for admin-only endpoints
@@ -97,6 +99,7 @@ Claude cited the exact section from the requirements document (3.5 Soft Delete) 
 - @mention parsing with case-insensitive lookup
 - Auto-assignment by workload with deterministic tie-breaking
 - Auto-escalation scheduler (hourly cron + manual ADMIN trigger)
+- Swagger documentation at /api/docs
 
 ---
 

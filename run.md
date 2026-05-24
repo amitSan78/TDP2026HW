@@ -12,7 +12,7 @@ Make sure you have the following installed:
 ## 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/amitSan78/TDP2026HW>
 cd issueflow-typescript
 ```
 
@@ -112,8 +112,8 @@ npm run test:e2e
 
 Expected output:
 ```
-Test Suites: 10 passed, 10 total
-Tests:       60 passed, 60 total
+Test Suites: 16 passed, 16 total
+Tests:       118 passed, 118 total
 ```
 
 ---

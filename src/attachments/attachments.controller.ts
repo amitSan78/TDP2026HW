@@ -10,6 +10,10 @@ import {
   BadRequestException,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import {
+  ApiTags, ApiOperation, ApiResponse,
+  ApiBearerAuth, ApiParam, ApiConsumes, ApiBody,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -22,6 +26,8 @@ const ALLOWED_MIME_TYPES = [
   'text/plain',
 ];
 
+@ApiTags('Attachments')
+@ApiBearerAuth('access-token')
 @Controller('tickets/:ticketId/attachments')
 export class AttachmentsController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
@@ -55,6 +61,26 @@ export class AttachmentsController {
       },
     }),
   )
+  @ApiOperation({ summary: 'Upload a file attachment to a ticket' })
+  @ApiParam({ name: 'ticketId', type: 'string', format: 'uuid', description: 'Ticket UUID' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'File to upload. Allowed types: PNG, JPEG, PDF, TXT. Max size: 10 MB.',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Attachment record created and file saved on disk' })
+  @ApiResponse({ status: 400, description: 'ticketId is not a valid UUID, no file provided, or file type not allowed' })
+  @ApiResponse({ status: 401, description: 'Missing or expired Bearer token' })
+  @ApiResponse({ status: 404, description: 'Ticket not found' })
   upload(
     @Param('ticketId', ParseUUIDPipe) ticketId: string,
     @UploadedFile() file: Express.Multer.File,
@@ -64,12 +90,24 @@ export class AttachmentsController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'List all attachments for a ticket' })
+  @ApiParam({ name: 'ticketId', type: 'string', format: 'uuid', description: 'Ticket UUID' })
+  @ApiResponse({ status: 200, description: 'Array of attachment records' })
+  @ApiResponse({ status: 400, description: 'ticketId is not a valid UUID' })
+  @ApiResponse({ status: 401, description: 'Missing or expired Bearer token' })
   findAll(@Param('ticketId', ParseUUIDPipe) ticketId: string) {
     return this.attachmentsService.findAll(ticketId);
   }
 
   @Delete(':id')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Delete an attachment record (file remains on disk)' })
+  @ApiParam({ name: 'ticketId', type: 'string', format: 'uuid', description: 'Ticket UUID' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Attachment UUID' })
+  @ApiResponse({ status: 200, description: 'Attachment deleted' })
+  @ApiResponse({ status: 400, description: 'ticketId or id is not a valid UUID' })
+  @ApiResponse({ status: 401, description: 'Missing or expired Bearer token' })
+  @ApiResponse({ status: 404, description: 'Attachment not found' })
   remove(
     @Param('ticketId', ParseUUIDPipe) _ticketId: string,
     @Param('id', ParseUUIDPipe) id: string,

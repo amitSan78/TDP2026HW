@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: issueflow
+      POSTGRES_PASSWORD: issueflow
+      POSTGRES_DB: issueflow
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp

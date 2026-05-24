@@ -38,10 +38,14 @@ export class AuditService {
       query.andWhere('log.action = :action', { action: filters.action });
     }
     if (filters.entityType) {
-      query.andWhere('log.entityType = :entityType', { entityType: filters.entityType });
+      query.andWhere('log.entityType = :entityType', {
+        entityType: filters.entityType,
+      });
     }
     if (filters.entityId) {
-      query.andWhere('log.entityId = :entityId', { entityId: filters.entityId });
+      query.andWhere('log.entityId = :entityId', {
+        entityId: filters.entityId,
+      });
     }
 
     return query.orderBy('log.createdAt', 'DESC').getMany();

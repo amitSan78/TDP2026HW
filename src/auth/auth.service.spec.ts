@@ -58,14 +58,16 @@ describe('AuthService', () => {
         password: hashed,
       });
 
-      await expect(service.login('alice', 'wrongpassword'))
-        .rejects.toThrow(UnauthorizedException);
+      await expect(service.login('alice', 'wrongpassword')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException if user not found', async () => {
       usersService.findByUsername.mockRejectedValue(new Error('not found'));
-      await expect(service.login('nobody', 'secret123'))
-        .rejects.toThrow(UnauthorizedException);
+      await expect(service.login('nobody', 'secret123')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 

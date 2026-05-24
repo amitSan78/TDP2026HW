@@ -1,7 +1,14 @@
 import {
-  Controller, Get, Post, Delete,
-  Param, UploadedFile, UseInterceptors,
-  HttpCode, BadRequestException,
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  UploadedFile,
+  UseInterceptors,
+  HttpCode,
+  BadRequestException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -26,7 +33,8 @@ export class AttachmentsController {
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, uniqueSuffix + extname(file.originalname));
         },
       }),
@@ -48,7 +56,7 @@ export class AttachmentsController {
     }),
   )
   upload(
-    @Param('ticketId') ticketId: string,
+    @Param('ticketId', ParseUUIDPipe) ticketId: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) throw new BadRequestException('No file uploaded');
@@ -56,13 +64,16 @@ export class AttachmentsController {
   }
 
   @Get()
-  findAll(@Param('ticketId') ticketId: string) {
+  findAll(@Param('ticketId', ParseUUIDPipe) ticketId: string) {
     return this.attachmentsService.findAll(ticketId);
   }
 
   @Delete(':id')
   @HttpCode(200)
-  remove(@Param('id') id: string) {
+  remove(
+    @Param('ticketId', ParseUUIDPipe) _ticketId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.attachmentsService.remove(id);
   }
 }

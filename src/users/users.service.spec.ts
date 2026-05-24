@@ -69,7 +69,9 @@ describe('UsersService', () => {
 
     it('should throw NotFoundException when user does not exist', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('bad-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -85,7 +87,9 @@ describe('UsersService', () => {
 
     it('should throw NotFoundException if user not found', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(service.update('bad-id', {})).rejects.toThrow(NotFoundException);
+      await expect(service.update('bad-id', {})).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

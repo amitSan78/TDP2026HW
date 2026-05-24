@@ -1,7 +1,12 @@
 import {
-  Entity, PrimaryGeneratedColumn, Column,
-  CreateDateColumn, UpdateDateColumn,
-  DeleteDateColumn, ManyToOne, JoinColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
   VersionColumn,
 } from 'typeorm';
 import { User } from '../users/user.entity';
@@ -41,7 +46,11 @@ export class Ticket {
   @Column({ type: 'enum', enum: TicketStatus, default: TicketStatus.TODO })
   status: TicketStatus;
 
-  @Column({ type: 'enum', enum: TicketPriority, default: TicketPriority.MEDIUM })
+  @Column({
+    type: 'enum',
+    enum: TicketPriority,
+    default: TicketPriority.MEDIUM,
+  })
   priority: TicketPriority;
 
   @Column({ type: 'enum', enum: TicketType })
@@ -55,11 +64,11 @@ export class Ticket {
   project: Project;
 
   @Column({ nullable: true })
-assigneeId: string | null;
+  assigneeId: string | null;
 
-@ManyToOne(() => User, { nullable: true })
-@JoinColumn({ name: 'assigneeId' })
-assignee: User;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'assigneeId' })
+  assignee: User;
 
   @Column({ nullable: true, type: 'timestamp' })
   dueDate: Date;

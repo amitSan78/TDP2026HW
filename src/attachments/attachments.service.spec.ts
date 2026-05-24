@@ -67,7 +67,9 @@ describe('AttachmentsService', () => {
 
       const result = await service.findAll('ticket-1');
       expect(result).toHaveLength(2);
-      expect(repo.find).toHaveBeenCalledWith({ where: { ticketId: 'ticket-1' } });
+      expect(repo.find).toHaveBeenCalledWith({
+        where: { ticketId: 'ticket-1' },
+      });
     });
   });
 

@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
-import { Ticket, TicketStatus, TicketPriority, TicketType } from './ticket.entity';
+import {
+  Ticket,
+  TicketStatus,
+  TicketPriority,
+  TicketType,
+} from './ticket.entity';
 import { TicketDependency } from './ticket-dependency.entity';
 import { User, UserRole } from '../users/user.entity';
 import { AuditService } from '../audit/audit.service';
@@ -45,7 +50,10 @@ describe('TicketsService', () => {
       providers: [
         TicketsService,
         { provide: getRepositoryToken(Ticket), useFactory: mockTicketRepo },
-        { provide: getRepositoryToken(TicketDependency), useFactory: mockDepsRepo },
+        {
+          provide: getRepositoryToken(TicketDependency),
+          useFactory: mockDepsRepo,
+        },
         { provide: getRepositoryToken(User), useFactory: mockUserRepo },
         { provide: AuditService, useFactory: mockAuditService },
       ],
@@ -103,8 +111,9 @@ describe('TicketsService', () => {
         status: TicketStatus.DONE,
         version: 1,
       });
-      await expect(service.update('ticket-1', { title: 'New title' }))
-        .rejects.toThrow(BadRequestException);
+      await expect(
+        service.update('ticket-1', { title: 'New title' }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException on backward status transition', async () => {
@@ -114,7 +123,7 @@ describe('TicketsService', () => {
         version: 1,
       });
       await expect(
-        service.update('ticket-1', { status: TicketStatus.TODO })
+        service.update('ticket-1', { status: TicketStatus.TODO }),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -169,29 +178,34 @@ describe('TicketsService', () => {
       ]);
 
       await expect(
-        service.update('ticket-1', { status: TicketStatus.DONE })
+        service.update('ticket-1', { status: TicketStatus.DONE }),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('findOne', () => {
     it('should return ticket when found', async () => {
-      ticketRepo.findOne.mockResolvedValue({ id: 'ticket-1', title: 'Fix bug' });
+      ticketRepo.findOne.mockResolvedValue({
+        id: 'ticket-1',
+        title: 'Fix bug',
+      });
       const result = await service.findOne('ticket-1');
       expect(result.title).toBe('Fix bug');
     });
 
     it('should throw NotFoundException when not found', async () => {
       ticketRepo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('bad-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('addDependency', () => {
     it('should throw BadRequestException if ticket blocks itself', async () => {
-    await expect(
+      await expect(
         service.addDependency('ticket-1', 'ticket-1'),
-    ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(BadRequestException);
     });
     it('should throw BadRequestException if tickets are in different projects', async () => {
       ticketRepo.findOne
@@ -235,49 +249,43 @@ describe('TicketsService', () => {
   });
 
   describe('exportToCsv', () => {
-  it('should return csv string with headers', async () => {
-    ticketRepo.find.mockResolvedValue([
-      {
-        id: 'ticket-1',
-        title: 'Fix bug',
-        description: 'A bug',
-        status: TicketStatus.TODO,
-        priority: TicketPriority.HIGH,
-        type: TicketType.BUG,
-        projectId: 'proj-1',
-        assigneeId: 'user-1',
-      },
-    ]);
+    it('should return csv string with headers', async () => {
+      ticketRepo.find.mockResolvedValue([
+        {
+          id: 'ticket-1',
+          title: 'Fix bug',
+          description: 'A bug',
+          status: TicketStatus.TODO,
+          priority: TicketPriority.HIGH,
+          type: TicketType.BUG,
+          projectId: 'proj-1',
+          assigneeId: 'user-1',
+        },
+      ]);
 
-    const result = await service.exportToCsv('proj-1');
-    expect(result).toContain('title');
-    expect(result).toContain('Fix bug');
+      const result = await service.exportToCsv('proj-1');
+      expect(result).toContain('title');
+      expect(result).toContain('Fix bug');
+    });
   });
-});
 
-describe('importFromCsv', () => {
-  it('should create tickets from valid CSV', async () => {
-    const csv = `title,description,status,priority,type,assigneeId
+  describe('importFromCsv', () => {
+    it('should create tickets from valid CSV', async () => {
+      const csv = `title,description,status,priority,type,assigneeId
 Fix bug,A bug,TODO,HIGH,BUG,`;
 
-    ticketRepo.create.mockReturnValue({});
-    ticketRepo.save.mockResolvedValue({ id: 'ticket-1', title: 'Fix bug' });
-    userRepo.find.mockResolvedValue([]);
+      ticketRepo.create.mockReturnValue({});
+      ticketRepo.save.mockResolvedValue({ id: 'ticket-1', title: 'Fix bug' });
+      userRepo.find.mockResolvedValue([]);
 
-    const result = await service.importFromCsv(
-      'proj-1',
-      Buffer.from(csv),
-    );
-    expect(result.created).toBe(1);
-    expect(result.failed).toBe(0);
-  });
+      const result = await service.importFromCsv('proj-1', Buffer.from(csv));
+      expect(result.created).toBe(1);
+      expect(result.failed).toBe(0);
+    });
 
-  it('should handle invalid CSV gracefully', async () => {
-    const result = await service.importFromCsv(
-      'proj-1',
-      Buffer.from(''),
-    );
-    expect(result.created).toBe(0);
+    it('should handle invalid CSV gracefully', async () => {
+      const result = await service.importFromCsv('proj-1', Buffer.from(''));
+      expect(result.created).toBe(0);
+    });
   });
-});
 });

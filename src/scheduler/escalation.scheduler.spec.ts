@@ -44,7 +44,10 @@ describe('EscalationScheduler', () => {
         dueDate: new Date('2020-01-01'), // past date
       };
       ticketRepo.find.mockResolvedValue([ticket]);
-      ticketRepo.save.mockResolvedValue({ ...ticket, priority: TicketPriority.MEDIUM });
+      ticketRepo.save.mockResolvedValue({
+        ...ticket,
+        priority: TicketPriority.MEDIUM,
+      });
 
       await scheduler.escalateOverdueTickets();
 

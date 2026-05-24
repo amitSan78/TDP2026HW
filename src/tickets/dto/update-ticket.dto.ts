@@ -1,6 +1,9 @@
 import {
-  IsEnum, IsOptional, IsString,
-  IsUUID, IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsDateString,
 } from 'class-validator';
 import { TicketPriority, TicketStatus } from '../ticket.entity';
 

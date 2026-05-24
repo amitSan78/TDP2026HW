@@ -1,5 +1,7 @@
 import {
-  Injectable, NotFoundException, ConflictException,
+  Injectable,
+  NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -105,7 +107,7 @@ export class CommentsService {
     } catch (err: any) {
       if (err.name === 'OptimisticLockVersionMismatchError') {
         throw new ConflictException(
-          'Comment was updated by someone else. Please refresh and try again.'
+          'Comment was updated by someone else. Please refresh and try again.',
         );
       }
       throw err;
@@ -114,10 +116,14 @@ export class CommentsService {
     const newMentions = await this.resolveMentions(dto.content, id);
     const newMentionUserIds = newMentions.map((m) => m.userId);
 
-    const toAdd = newMentions.filter((m) => !oldMentionUserIds.includes(m.userId));
+    const toAdd = newMentions.filter(
+      (m) => !oldMentionUserIds.includes(m.userId),
+    );
     if (toAdd.length > 0) await this.mentionsRepo.save(toAdd);
 
-    const toRemove = comment.mentions.filter((m) => !newMentionUserIds.includes(m.userId));
+    const toRemove = comment.mentions.filter(
+      (m) => !newMentionUserIds.includes(m.userId),
+    );
     if (toRemove.length > 0) await this.mentionsRepo.remove(toRemove);
 
     return this.toResponse(await this.findOneEntity(id));

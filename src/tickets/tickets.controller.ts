@@ -1,8 +1,18 @@
 import {
-  Controller, Get, Post, Patch, Delete,
-  Param, Body, Query, HttpCode,
-  Res, UseInterceptors, UploadedFile,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  HttpCode,
+  Res,
+  UseInterceptors,
+  UploadedFile,
   BadRequestException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
@@ -23,13 +33,13 @@ export class TicketsController {
   }
 
   @Get()
-  findAll(@Query('projectId') projectId: string) {
+  findAll(@Query('projectId', ParseUUIDPipe) projectId: string) {
     return this.ticketsService.findAll(projectId);
   }
 
   @Get('export')
   async exportCsv(
-    @Query('projectId') projectId: string,
+    @Query('projectId', ParseUUIDPipe) projectId: string,
     @Res() res: Response,
   ) {
     const csv = await this.ticketsService.exportToCsv(projectId);
@@ -48,56 +58,60 @@ export class TicketsController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) throw new BadRequestException('No CSV file uploaded');
+    if (!projectId) throw new BadRequestException('projectId is required');
     return this.ticketsService.importFromCsv(projectId, file.buffer);
   }
 
   @Roles(UserRole.ADMIN)
   @Get('deleted')
-  findDeleted(@Query('projectId') projectId: string) {
+  findDeleted(@Query('projectId', ParseUUIDPipe) projectId: string) {
     return this.ticketsService.findDeleted(projectId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.ticketsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateTicketDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateTicketDto,
+  ) {
     return this.ticketsService.update(id, dto);
   }
 
   @Delete(':id')
   @HttpCode(200)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.ticketsService.remove(id);
   }
 
   @Roles(UserRole.ADMIN)
   @Post(':id/restore')
-  restore(@Param('id') id: string) {
+  restore(@Param('id', ParseUUIDPipe) id: string) {
     return this.ticketsService.restore(id);
   }
 
   @Post(':id/dependencies')
   @HttpCode(200)
   addDependency(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body('blockedBy') blockedById: string,
   ) {
     return this.ticketsService.addDependency(id, blockedById);
   }
 
   @Get(':id/dependencies')
-  getDependencies(@Param('id') id: string) {
+  getDependencies(@Param('id', ParseUUIDPipe) id: string) {
     return this.ticketsService.getDependencies(id);
   }
 
   @Delete(':id/dependencies/:blockerId')
   @HttpCode(200)
   removeDependency(
-    @Param('id') id: string,
-    @Param('blockerId') blockerId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('blockerId', ParseUUIDPipe) blockerId: string,
   ) {
     return this.ticketsService.removeDependency(id, blockerId);
   }

@@ -1,6 +1,13 @@
 import {
-  Controller, Get, Post, Patch, Delete,
-  Param, Body, HttpCode,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  HttpCode,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -30,29 +37,32 @@ export class ProjectsController {
   }
 
   @Get(':id/workload')
-  getWorkload(@Param('id') id: string) {
+  getWorkload(@Param('id', ParseUUIDPipe) id: string) {
     return this.projectsService.getWorkload(id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.projectsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateProjectDto) {
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateProjectDto,
+  ) {
     return this.projectsService.update(id, dto);
   }
 
   @Delete(':id')
   @HttpCode(200)
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.projectsService.remove(id);
   }
 
   @Roles(UserRole.ADMIN)
   @Post(':id/restore')
-  restore(@Param('id') id: string) {
+  restore(@Param('id', ParseUUIDPipe) id: string) {
     return this.projectsService.restore(id);
   }
 }

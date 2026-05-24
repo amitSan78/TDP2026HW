@@ -19,10 +19,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req: any, payload: any) {
-  const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
-  if (token && this.denylistService.isRevoked(token)) {
-    throw new UnauthorizedException('Token has been revoked');
+    const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+    if (token && this.denylistService.isRevoked(token)) {
+      throw new UnauthorizedException('Token has been revoked');
+    }
+    return this.usersService.findOne(payload.sub);
   }
-  return this.usersService.findOne(payload.sub);
-}
 }

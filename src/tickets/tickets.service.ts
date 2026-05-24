@@ -1,6 +1,8 @@
 import {
-  Injectable, NotFoundException,
-  BadRequestException, ConflictException,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -131,7 +133,7 @@ export class TicketsService {
       const newIndex = STATUS_ORDER.indexOf(dto.status);
       if (newIndex <= currentIndex) {
         throw new BadRequestException(
-          `Status can only move forward. Current: ${ticket.status}`
+          `Status can only move forward. Current: ${ticket.status}`,
         );
       }
     }
@@ -162,7 +164,7 @@ export class TicketsService {
     } catch (err) {
       if (err.name === 'OptimisticLockVersionMismatchError') {
         throw new ConflictException(
-          'Ticket was updated by someone else. Please refresh and try again.'
+          'Ticket was updated by someone else. Please refresh and try again.',
         );
       }
       throw err;
@@ -193,32 +195,35 @@ export class TicketsService {
     return this.findOne(id);
   }
 
- async addDependency(ticketId: string, blockedById: string): Promise<TicketDependency> {
-  // First check — before any DB calls
-  if (ticketId === blockedById) {
-    throw new BadRequestException('A ticket cannot block itself');
+  async addDependency(
+    ticketId: string,
+    blockedById: string,
+  ): Promise<TicketDependency> {
+    // First check — before any DB calls
+    if (ticketId === blockedById) {
+      throw new BadRequestException('A ticket cannot block itself');
+    }
+
+    // Then check both tickets exist
+    const ticket = await this.findOne(ticketId);
+    const blocker = await this.findOne(blockedById);
+
+    if (ticket.projectId !== blocker.projectId) {
+      throw new BadRequestException(
+        'Both tickets must belong to the same project',
+      );
+    }
+
+    const existing = await this.depsRepo.findOne({
+      where: { ticketId, blockedById },
+    });
+    if (existing) {
+      throw new BadRequestException('Dependency already exists');
+    }
+
+    const dep = this.depsRepo.create({ ticketId, blockedById });
+    return this.depsRepo.save(dep);
   }
-
-  // Then check both tickets exist
-  const ticket = await this.findOne(ticketId);
-  const blocker = await this.findOne(blockedById);
-
-  if (ticket.projectId !== blocker.projectId) {
-    throw new BadRequestException(
-      'Both tickets must belong to the same project',
-    );
-  }
-
-  const existing = await this.depsRepo.findOne({
-    where: { ticketId, blockedById },
-  });
-  if (existing) {
-    throw new BadRequestException('Dependency already exists');
-  }
-
-  const dep = this.depsRepo.create({ ticketId, blockedById });
-  return this.depsRepo.save(dep);
-}
   async getDependencies(ticketId: string): Promise<TicketDependency[]> {
     return this.depsRepo.find({
       where: { ticketId },
@@ -234,60 +239,64 @@ export class TicketsService {
     await this.depsRepo.remove(dep);
   }
   async exportToCsv(projectId: string): Promise<string> {
-  const tickets = await this.findAll(projectId);
+    const tickets = await this.findAll(projectId);
 
-  const rows = tickets.map((t) => ({
-    id: t.id,
-    title: t.title,
-    description: t.description ?? '',
-    status: t.status,
-    priority: t.priority,
-    type: t.type,
-    assigneeId: t.assigneeId ?? '',
-  }));
+    const rows = tickets.map((t) => ({
+      id: t.id,
+      title: t.title,
+      description: t.description ?? '',
+      status: t.status,
+      priority: t.priority,
+      type: t.type,
+      assigneeId: t.assigneeId ?? '',
+    }));
 
-  return stringify(rows, { header: true });
-}
-
-async importFromCsv(
-  projectId: string,
-  fileBuffer: Buffer,
-): Promise<{ created: number; failed: number; errors: string[] }> {
-  let records: any[];
-
-  try {
-    records = parse(fileBuffer, {
-      columns: true,        // first row is header
-      skip_empty_lines: true,
-      trim: true,
-    });
-  } catch (err) {
-    return { created: 0, failed: 0, errors: [`Invalid CSV format: ${err.message}`] };
+    return stringify(rows, { header: true });
   }
 
-  let created = 0;
-  let failed = 0;
-  const errors: string[] = [];
+  async importFromCsv(
+    projectId: string,
+    fileBuffer: Buffer,
+  ): Promise<{ created: number; failed: number; errors: string[] }> {
+    let records: any[];
 
-  for (let i = 0; i < records.length; i++) {
-    const row = records[i];
     try {
-      await this.create({
-        title: row.title,
-        description: row.description || undefined,
-        status: row.status,
-        priority: row.priority,
-        type: row.type,
-        projectId,
-        assigneeId: row.assigneeId || undefined,
+      records = parse(fileBuffer, {
+        columns: true, // first row is header
+        skip_empty_lines: true,
+        trim: true,
       });
-      created++;
     } catch (err) {
-      failed++;
-      errors.push(`Row ${i + 2}: ${err.message}`);
+      return {
+        created: 0,
+        failed: 0,
+        errors: [`Invalid CSV format: ${err.message}`],
+      };
     }
-  }
 
-  return { created, failed, errors };
-}
+    let created = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (let i = 0; i < records.length; i++) {
+      const row = records[i];
+      try {
+        await this.create({
+          title: row.title,
+          description: row.description || undefined,
+          status: row.status,
+          priority: row.priority,
+          type: row.type,
+          projectId,
+          assigneeId: row.assigneeId || undefined,
+        });
+        created++;
+      } catch (err) {
+        failed++;
+        errors.push(`Row ${i + 2}: ${err.message}`);
+      }
+    }
+
+    return { created, failed, errors };
+  }
 }

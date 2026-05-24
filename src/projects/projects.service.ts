@@ -1,6 +1,4 @@
-import {
-  Injectable, NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './project.entity';
@@ -42,12 +40,12 @@ export class ProjectsService {
   }
 
   async findDeleted(): Promise<Project[]> {
-  return this.projectsRepo
-    .createQueryBuilder('project')
-    .withDeleted()
-    .where('project.deletedAt IS NOT NULL')
-    .getMany();
-}
+    return this.projectsRepo
+      .createQueryBuilder('project')
+      .withDeleted()
+      .where('project.deletedAt IS NOT NULL')
+      .getMany();
+  }
 
   async restore(id: string): Promise<Project> {
     const project = await this.projectsRepo.findOne({
@@ -59,16 +57,16 @@ export class ProjectsService {
     return this.findOne(id);
   }
   async getWorkload(projectId: string): Promise<any[]> {
-  const result = await this.projectsRepo.manager.query(
-    `SELECT u.id as "userId", u.username, 
+    const result = await this.projectsRepo.manager.query(
+      `SELECT u.id as "userId", u.username, 
      COUNT(t.id) FILTER (WHERE t.status != 'DONE' AND t."deletedAt" IS NULL) as "openTicketCount"
      FROM users u
      LEFT JOIN tickets t ON t."assigneeId" = u.id AND t."projectId" = $1
      WHERE u.role = 'DEVELOPER'
      GROUP BY u.id, u.username
      ORDER BY "openTicketCount" ASC`,
-    [projectId],
-  );
-  return result;
-}
+      [projectId],
+    );
+    return result;
+  }
 }

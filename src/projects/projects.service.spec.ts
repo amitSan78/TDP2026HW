@@ -56,7 +56,9 @@ describe('ProjectsService', () => {
 
     it('should throw NotFoundException when not found', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('bad-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -89,7 +91,11 @@ describe('ProjectsService', () => {
 
   describe('restore', () => {
     it('should restore a soft deleted project', async () => {
-      const project = { id: 'proj-1', name: 'My Project', deletedAt: new Date() };
+      const project = {
+        id: 'proj-1',
+        name: 'My Project',
+        deletedAt: new Date(),
+      };
       repo.findOne
         .mockResolvedValueOnce(project)
         .mockResolvedValueOnce(project);

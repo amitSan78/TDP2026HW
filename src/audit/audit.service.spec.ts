@@ -88,10 +88,9 @@ describe('AuditService', () => {
       repo.createQueryBuilder.mockReturnValue(qb);
 
       await service.findAll({ actor: 'SYSTEM' });
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'log.actor = :actor',
-        { actor: 'SYSTEM' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('log.actor = :actor', {
+        actor: 'SYSTEM',
+      });
     });
   });
 });

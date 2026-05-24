@@ -36,19 +36,18 @@ import { RolesGuard } from './auth/roles.guard';
     AuditModule,
     AttachmentsModule,
     SchedulerModule,
-    
   ],
   controllers: [AppController],
   providers: [
-  AppService,
-  {
-    provide: APP_GUARD,
-    useClass: JwtAuthGuard,
-  },
-  {
-    provide: APP_GUARD,
-    useClass: RolesGuard,
-  },
-],
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

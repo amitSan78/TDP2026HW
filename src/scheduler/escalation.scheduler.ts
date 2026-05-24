@@ -24,7 +24,7 @@ export class EscalationScheduler {
   ) {}
 
   // Runs every hour automatically
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_8AM)
   async escalateOverdueTickets() {
     this.logger.log('Running escalation check...');
 
@@ -94,7 +94,7 @@ export class EscalationScheduler {
     }
   }
   async triggerManually(): Promise<{ message: string }> {
-  await this.escalateOverdueTickets();
-  return { message: 'Escalation check completed' };
-}
+    await this.escalateOverdueTickets();
+    return { message: 'Escalation check completed' };
+  }
 }

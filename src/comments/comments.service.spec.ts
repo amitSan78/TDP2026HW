@@ -36,7 +36,10 @@ describe('CommentsService', () => {
       providers: [
         CommentsService,
         { provide: getRepositoryToken(Comment), useFactory: mockCommentRepo },
-        { provide: getRepositoryToken(CommentMention), useFactory: mockMentionRepo },
+        {
+          provide: getRepositoryToken(CommentMention),
+          useFactory: mockMentionRepo,
+        },
         { provide: getRepositoryToken(User), useFactory: mockUserRepo },
       ],
     }).compile();
@@ -52,14 +55,22 @@ describe('CommentsService', () => {
   describe('extractMentions (private via create)', () => {
     it('should parse @mentions from content', async () => {
       const dto = { content: 'Hello @alice and @BOB', authorId: 'user-1' };
-      const saved = { id: 'comment-1', ...dto, ticketId: 'ticket-1', mentions: [] };
+      const saved = {
+        id: 'comment-1',
+        ...dto,
+        ticketId: 'ticket-1',
+        mentions: [],
+      };
 
       commentRepo.create.mockReturnValue(saved);
       commentRepo.save.mockResolvedValue(saved);
       commentRepo.findOne.mockResolvedValue({ ...saved, mentions: [] });
 
       // Mock queryBuilder for user lookup
-      const qb = { where: jest.fn().mockReturnThis(), getOne: jest.fn().mockResolvedValue(null) };
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(null),
+      };
       userRepo.createQueryBuilder.mockReturnValue(qb);
 
       await service.create('ticket-1', dto);
@@ -71,12 +82,20 @@ describe('CommentsService', () => {
   describe('create', () => {
     it('should save comment and return with mentions', async () => {
       const dto = { content: 'Simple comment', authorId: 'user-1' };
-      const saved = { id: 'comment-1', ...dto, ticketId: 'ticket-1', mentions: [] };
+      const saved = {
+        id: 'comment-1',
+        ...dto,
+        ticketId: 'ticket-1',
+        mentions: [],
+      };
 
       commentRepo.create.mockReturnValue(saved);
       commentRepo.save.mockResolvedValue(saved);
       commentRepo.findOne.mockResolvedValue(saved);
-      const qb = { where: jest.fn().mockReturnThis(), getOne: jest.fn().mockResolvedValue(null) };
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(null),
+      };
       userRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.create('ticket-1', dto);
@@ -87,32 +106,36 @@ describe('CommentsService', () => {
 
   describe('findOne', () => {
     it('should return comment when found', async () => {
-      commentRepo.findOne.mockResolvedValue({ id: 'comment-1', content: 'Hello' });
+      commentRepo.findOne.mockResolvedValue({
+        id: 'comment-1',
+        content: 'Hello',
+      });
       const result = await service.findOne('comment-1');
       expect(result.content).toBe('Hello');
     });
 
     it('should throw NotFoundException when not found', async () => {
       commentRepo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('bad-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('remove', () => {
-  it('should remove comment when found', async () => {
-    const comment = { id: 'comment-1', content: 'Hello', mentions: [] };
-    commentRepo.findOne.mockResolvedValue(comment);
-    commentRepo.remove.mockResolvedValue(comment);
+    it('should remove comment when found', async () => {
+      const comment = { id: 'comment-1', content: 'Hello', mentions: [] };
+      commentRepo.findOne.mockResolvedValue(comment);
+      commentRepo.remove.mockResolvedValue(comment);
 
-    await expect(service.remove('comment-1')).resolves.not.toThrow();
-    expect(commentRepo.remove).toHaveBeenCalledWith(comment);
-  });
+      await expect(service.remove('comment-1')).resolves.not.toThrow();
+      expect(commentRepo.remove).toHaveBeenCalledWith(comment);
+    });
 
-  // ← ADD THIS NEW TEST HERE
-  it('should throw NotFoundException if comment not found', async () => {
-    commentRepo.findOne.mockResolvedValue(null);
-    await expect(service.remove('bad-id')).rejects.toThrow(NotFoundException);
-  });
-
-}); // ← this closes describe('remove')
+    // ← ADD THIS NEW TEST HERE
+    it('should throw NotFoundException if comment not found', async () => {
+      commentRepo.findOne.mockResolvedValue(null);
+      await expect(service.remove('bad-id')).rejects.toThrow(NotFoundException);
+    });
+  }); // ← this closes describe('remove')
 });
